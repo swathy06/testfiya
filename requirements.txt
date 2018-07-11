@@ -1,2 +1,1 @@
-Flask==0.12.2
-gunicorn
+azure==0.8.4
