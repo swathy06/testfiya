@@ -11,6 +11,9 @@ from flask import Flask, render_template, request
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
 import re
+import json
+import os
+from flask import make_response
 app = Flask(__name__)
 
 english_bot = ChatBot("GUI Bot", read_only=True,
@@ -139,5 +142,5 @@ def get_bot_response():
         #return str(response)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
 
