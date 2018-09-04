@@ -54,8 +54,8 @@ english_bot = ChatBot("GUI Bot", read_only=True,
       )
 @app.route('/')
 def hello_world():
-  return 'Hey its Python Flask application!'
-    #return render_template('index.html')
+  #return 'Hey its Python Flask application!'
+   return render_template('index.html')
 
 @app.route('/get')
 def get_bot_response():
