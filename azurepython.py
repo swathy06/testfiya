@@ -52,7 +52,7 @@ english_bot = ChatBot("GUI Bot", read_only=True,
 		filters=['chatterbot.filters.RepetitiveResponseFilter'],
         database="database3"
       )
-@app.route("/")
+@app.route('/',methods=['GET'])
 def home():
     return render_template("index.html")
 
