@@ -54,7 +54,7 @@ english_bot = ChatBot("GUI Bot", read_only=True,
       )
 @app.route('/')
 def home():
-	print("am happy")
+	return("am happy")
     #return render_template('index.html')
 '''
 @app.route('/get')
