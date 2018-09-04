@@ -52,13 +52,11 @@ english_bot = ChatBot("GUI Bot", read_only=True,
 		filters=['chatterbot.filters.RepetitiveResponseFilter'],
         database="database3"
       )
-@app.route('/',methods=['GET'])
+@app.route('/')
 def home():
     return render_template("index.html")
 
-@app.route('/',methods=[''GET','POST'])
-def home():
-    return render_template("index.html")
+@app.route('/get')
 def get_bot_response():
     userText = request.args.get('msg')
     lot = re.findall('\d+', userText)
