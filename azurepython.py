@@ -1,121 +1,143 @@
-from flask import Flask
-from flask import request
-import json
-import os
-from flask import make_response
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Aug 28 12:50:41 2018
+
+@author: DELL
+"""
+
+
+
+from flask import Flask, render_template, request
+from chatterbot import ChatBot
+from chatterbot.trainers import ChatterBotCorpusTrainer
+import re
 app = Flask(__name__)
 
-import logging
+english_bot = ChatBot("GUI Bot", read_only=True,
+                      preprocessors=[
+                          'chatterbot.preprocessors.clean_whitespace'
+                      ],
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+                      logic_adapters=[
+                                         {
+                                             'import_path': 'chatterbot.logic.BestMatch',
+                                             "statement_comparison_function": "chatterbot.comparisons.levenshtein_distance",
+                                             "statement_comparison_function1": "chatterbot.comparisons.SentimentComparison",
+                                             "statement_comparison_function2": "chatterbot.comparisons.SynsetDistance",
+                                             "response_selection_method": "chatterbot.response_selection.get_random_response"
+                                         },
+                                     # {
+                                     # 'import_path':'chatterbot.logic.TimeLogicAdapter',
+                                     # 'threshold': 0.50
+                                     # },
+                                     # {
+                                     # 'import_path':'chatterbot.logic.MathematicalEvaluation',
+                                     # 'threshold': 0.50
+                                     # },
 
-# create a file handler
-handler = logging.FileHandler('hello.log')
-handler.setLevel(logging.INFO)
+{
+        'import_path': 'chatterbot.logic.LowConfidenceAdapter',
+        'threshold': 0.85,
+        'default_response': 'I am sorry, but I do not understand.'
+        }
+                            # "chatterbot.logic.BestMatch"
 
-# create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
+        ],
+		storage_adapter="chatterbot.storage.MongoDatabaseAdapter",
+		input_adapter="chatterbot.input.VariableInputTypeAdapter",
+        output_adapter="chatterbot.output.OutputAdapter",
+		filters=['chatterbot.filters.RepetitiveResponseFilter'],
+        database="database3"
+      )
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-# add the handlers to the logger
-logger.addHandler(handler)
+@app.route("/get")
+def get_bot_response():
+    userText = request.args.get('msg')
+    lot = re.findall('\d+', userText)
+    # print(lot)
+    y = userText.split()
+    #texts = [[word.lower() for word in y] for text in y]
+    texts = [word.lower() for word in y]
+    print (texts)
+    #z = y.lower() #to lower the alphabet
+    #print (y)
+    k = "bmi"
+    print (k)
+    if any(word in k for word in texts):
+        print(123)
+        response = 'enter weight(kg) and height(cm)'
+        return str(response)
 
-logger.info('bmi')
+    #lot = re.findall('\d+', userText)
+    #print(lot)
+    elif len(lot) == 2:
+        print('condition check',lot)
+        w = float(lot[0])
+        print (w)
+        h= float(lot[1])
+        h = h/100
+        print (h)
+        bmi = float(w/(h*h))
+        bmi = round(bmi,2)
+        print(bmi)
+        if (bmi<=18.5):
+            a = 'underweight'
+            i=float(19)*(float(h*h))
+            print(i)
+    #logger.info('Got the values2')
+            r = int(i) - int(w)
+            i = round(i,2)
+    #logger.info('Start reading database')
+            speech = 'Your bmi is {} and you are {} So your ideal weight should be {}kg and you have to gain {}kg'.format(bmi, a,i,r)
+            return str(speech)
+        elif (bmi>18.5 and bmi<24.9):
+            a = 'healthy'
+            speech = 'Your bmi is {} and you are {}'.format(bmi, a)
+            return str(speech)
+    #logger.info('Got the values3')
+        elif (bmi>25.0 and bmi<29.9):
+                a ='overweight'
+                i = float(25) * (float(h * h))
+                print(i)
+                r = int(w) - int(i)
+                i = round(i, 2)
+                speech = 'Your bmi is {} and you are {} So your ideal weight should be {}kg and you have to reduce {}kg'.format(bmi, a, i,r)
+                return str(speech)
+    #logger.info('Got the values4')
+        else:
+            a = 'obese'
+            i = float(25) * (float(h * h))
+            print(i)
+            r = int(w) - int(i)
+            i = round(i, 2)
+    #logger.debug('Records: %s', i)
+    #logger.info('Got the values5')
+            speech = 'Your bmi is {} and you are {} So your ideal weight  should be {}kg and you have to reduce {}kg'.format(bmi, a, i,r)
+            return str(speech)
+       # bmi1 = 'Your bmi is {}'.format(bmi)
+    '''else:
+          speech = 'you have to enter two values'
+          return str(speech)'''
+    #elif not lot:
+    #print (lot)
+    #elif not lot:
+    if any(word in k for word in y):
+        print(456)
+    if userText.strip()!='bmi':
+             #return str(english_bot.get_response(userText))
+             speech ='{}' .format(english_bot.get_response(userText))
+             return str(speech)
 
+    #elif  userText.strip()=='bmi':
+    #elif  userText.strip()=='bmi':
+    #if any(word in k for word in y):
+     #   print(789)
+       # response = 'enter weight(kg) and height(cm)'
+        #return str(response)
 
-@app.route('/',methods=['POST'])
-def webhook():
-    req = request.get_json(silent=True, force=True)
-    print("Request:")
-    print(json.dumps(req, indent=4))
-    res = processRequest(req)
-    res = json.dumps(res, indent=4)
-    print(res)
-    r = make_response(res)
-    r.headers['Content-Type'] = 'application/json'
-    return r
+if __name__ == "__main__":
+    app.run(debug=True)
 
-def processRequest(req):
-    print("Request:")
-    print(json.dumps(req, indent=4))
-    if req.get("result").get("action") == "getBmi":
-        data = req
-        res = makeWebhookResultForGetBmi(data)
-    elif req.get("result").get("action") == "getDia":
-        data = req
-        res = makeDia(data)
-    else:
-        return {}
-    return res
-def makeWebhookResultForGetBmi(data):
-    element1 = data.get("result").get("parameters").get("number")
-    print (element1)
-    element2 = data.get("result").get("parameters").get("number-integer")
-    element2 = int(element2)/100
-    print (element2)
-    bmi = float(element1)/(float(element2*element2))
-    bmi =round(bmi,2)
-    print(bmi)
-    if (bmi<=18.5):
-        a = 'underweight'
-        i=float(19)*(float(element2*element2))
-        print(i)
-        r =  int(i) - int(element1) 
-        i = round(i,2)
-        speech = 'Your bmi is {} and you are {} So your ideal weight should be {}kg and you have to gain {}kg'.format(bmi, a,i,r)
-    elif (bmi>18.5 and bmi<24.9):
-        a = 'healthy'
-        speech = 'Your bmi is {} and you are {}'.format(bmi, a)
-    elif (bmi>25.0 and bmi<29.9):
-        a ='overweight'
-        i = float(25) * (float(element2 * element2))
-        print(i)
-        r = int(element1) - int(i)
-        i = round(i, 2)
-        speech = 'Your bmi is {} and you are {} So your ideal weight should be {}kg and you have to reduce {}kg'.format(bmi, a, i,r)
-    else:
-        a = 'obese'
-        i = float(25) * (float(element2 * element2))
-        print(i)
-        r = int(element1) - int(i)
-        i = round(i, 2)
-        speech = 'Your bmi is {} and you are {} So your ideal weight  should be {}kg and you have to reduce {}kg'.format(bmi, a, i,r)
-    #speech = 'Your bmi is {}' +str(bmi)'and you are'+str(a)
-    #speech = 'Your bmi is {} and you are {}' .format(bmi,a)
-
-    return {
-        "speech": speech,
-        "displayText": speech,
-        "source": "webhookdata"
-    }
-def makeDia(data):
-    element1 = data.get("result").get("parameters").get("number-integer")
-    element2 = data.get("result").get("parameters").get("number")
-    if (element1 < 100 and (element2 > 79 and element2 < 159)):
-        a = 'normal'
-       
-        speech = 'Your are not diabetic'
-    elif (element1 < 100 and (element2 > 160 and element2 < 200)):
-        a = 'prediabetic'
-        speech = 'You are {} and its better to consult a Physician. As Prevention is better than cure'.format(a)
-    elif (element1 < 100 and  element2 > 200):
-        a ='diabetic'
-        
-        speech = 'You are {} .Please consult a diabetologist and have a regular checkup'.format(a)
-    else:
-        a = 'diabetic'
-        
-        speech = 'You are {} .Please consult a diabetologist and have a regular checkup'.format(a)
-    #speech = 'Your bmi is {}' +str(bmi)'and you are'+str(a)
-    #speech = 'Your bmi is {} and you are {}' .format(bmi,a)
-
-    return {
-        "speech": speech,
-        "displayText": speech,
-        "source": "webhookdata"
-    }
-   
-
-if __name__ == '__main__':
-  app.run()
