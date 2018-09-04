@@ -53,7 +53,7 @@ english_bot = ChatBot("GUI Bot", read_only=True,
 def home():
     return render_template("index.html")
 
-@app.route("/get")
+@app.route('/',methods=['POST'])
 def get_bot_response():
     userText = request.args.get('msg')
     lot = re.findall('\d+', userText)
