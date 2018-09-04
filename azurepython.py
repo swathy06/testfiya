@@ -128,7 +128,7 @@ def get_bot_response():
     #print (lot)
     #elif not lot:
     if any(word in k for word in y):
-        print(456)
+        #print(456)
     if userText.strip()!='bmi':
              #return str(english_bot.get_response(userText))
              speech ='{}' .format(english_bot.get_response(userText))
